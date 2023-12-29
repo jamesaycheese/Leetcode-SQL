@@ -1,0 +1,37 @@
+'''
+SELECT ROUND(SUM(tiv_2016), 2) as tiv_2016
+FROM Insurance
+WHERE 
+    tiv_2015 IN (
+        SELECT tiv_2015 
+        FROM Insurance 
+        GROUP BY tiv_2015
+        HAVING COUNT(*) > 1
+    )
+    AND (lat, lon) NOT IN (
+        SELECT lat, lon
+        FROM Insurance
+        GROUP BY lat, lon
+        HAVING COUNT(*) > 1
+    );
+'''
+
+'''
+SELECT ROUND(SUM(i.tiv_2016), 2) AS tiv_2016
+FROM Insurance i
+WHERE 
+    -- Condition for same tiv_2015 as one or more other policyholders
+    EXISTS (
+        SELECT 1
+        FROM Insurance
+        WHERE i.tiv_2015 = Insurance.tiv_2015
+        AND i.pid <> Insurance.pid
+    )
+    AND -- Condition for unique (lat, lon)
+    NOT EXISTS (
+        SELECT 1
+        FROM Insurance
+        WHERE i.lat = Insurance.lat AND i.lon = Insurance.lon
+        AND i.pid <> Insurance.pid
+    );
+'''
